@@ -29,13 +29,7 @@ byte receiveFile(String fName){
           Serial.println("File error");
           return E_FNF;
         }
-        /*
-        //Check for file header in buffer - Needed by TK2 (This is a bug in TK2 LOAD)
-        if(Buf[0]!=0xFF){ //If no header, add one - populate it later with file size
-          currentFile.write(0xFF);
-          for(byte count=0;count<14;count++) currentFile.write((byte)0x00);
-        }
-        */
+ 
       }
       //Serial.print("Block: ");
       //Serial.println(blockcount);
@@ -44,16 +38,7 @@ byte receiveFile(String fName){
     }
   } while ((error==E_OK) || (error==E_CHK));
   if(error==E_EOF) error=E_OK; //Report EOF as Success
-  /*
-  //Populate FileHeader - Needed by TK2
-  unsigned long fSize=currentFile.size()-15;
-  currentFile.seek(0x01);
-  currentFile.write((fSize & 0xFF000000)>>24);
-  currentFile.write((fSize & 0x00FF0000)>>16);
-  currentFile.write((fSize & 0x0000FF00)>>8);
-  currentFile.write((fSize & 0x000000FF));
-  //Serial.println(fSize);
-  */
+  
   //Close File
   currentFile.close();
   
