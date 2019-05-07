@@ -4,7 +4,7 @@
  * Write Data to QL
  */
 
-byte sendFile(String fName,byte destID,byte srcID){
+byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
 
   byte error=0;
   unsigned long fSize=0,fPosition=0;
@@ -16,9 +16,11 @@ byte sendFile(String fName,byte destID,byte srcID){
   Header[1]=srcID; //Source
   Header[2]=0; //Block LSB
   Header[3]=0; //Block MSB
-  SET_LED_PIN;
+  
+  //Open file
   error=checkSDFile(fName);//Check if file is valid.
   if(error!=E_OK) return error;
+  SET_LED_PIN;
   fSize=currentFile.size();
   fPosition=0;
  
@@ -35,9 +37,10 @@ byte sendFile(String fName,byte destID,byte srcID){
     currentFile.read(Buf,Header[5]);
     
     // Fix for TK2 LOAD erroneously expecting a file header 
-    if(useTK2Fix && (Header[2]+Header[3]==0)){ //First block
+    if(TK2Fix && (Header[2]+Header[3]==0)){ //First block
       if(Buf[0]!=0xFF){ //File with no header info
         //Create file header
+        //Serial.println("Adding TK2 file header");
         for(byte count=0;count<15;count++) Buf[count]=0x00;
         Buf[0]=0xFF;
         unsigned long fSize=currentFile.size();
@@ -114,21 +117,24 @@ byte sendFile(String fName,byte destID,byte srcID){
 }
 
 byte checkSDFile(String fName){
-  if(!SD.exists(fName)){
-    //Serial.println("File not found");
-    CLR_LED_PIN;
+  currentFile=SD.open(fName,FILE_READ);
+  if(!currentFile){ //File not found
+    //fileName="";
     return E_FNF;
   }
-  currentFile=SD.open(fName,FILE_READ);
   //Serial.print("Size: ");
   //Serial.println(currentFile.size());
   if(currentFile.size()==0){
     //Serial.println("Zero byte file");
-    CLR_LED_PIN;
     currentFile.close();
     return E_FZB;
   }
-
+  //Get the actual case sensitive name of the file, ignoring dirlist file.
+  if(fName!="dirlist"){
+    char tbuf[33];
+    currentFile.getName(tbuf,33);
+    fileName=tbuf;
+  }
   return E_OK;
 }
 

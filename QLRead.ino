@@ -18,18 +18,18 @@ byte receiveFile(String fName){
     if((error==E_OK) || (error==E_EOF)){//Data is for this station
       if((Header[2]+Header[3])==0){//First block
         clientNETID=Header[1];
-        if((Header[4]==1) && (Header[5]<19)){//Block is last block with <19 bytes - might be a command
+        if((Header[4]==1) && (Buf[0]=='C')){//Block is last block and first byte is 'C' - might be a command
           if(checkCommand()) return E_CMD; //Was a command - exit routine.
         }
         //Open file if no error
         SET_LED_PIN;
-        SD.remove(fName); //Overwrite file
+        //SD.remove(fName); //Overwrite file
         currentFile=SD.open(fName,O_READ | O_WRITE | O_CREAT);
         if(!currentFile){
           Serial.println("File error");
           return E_FNF;
         }
- 
+        currentFile.seek(0); //Start of file
       }
       //Serial.print("Block: ");
       //Serial.println(blockcount);

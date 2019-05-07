@@ -1,3 +1,5 @@
+
+
 /**
  * STM32F103C "Blue Pill"
  * Sinclair QL network interface
@@ -24,6 +26,8 @@
  *
  * 
  * QL standard network header format:
+ * Please refer to the Toolkit2 documentation for
+ * further details on the network protocol.
  * 
  * byte     Description
  * 0        Destination Station Number
@@ -48,14 +52,14 @@
  /*
   * TODO
   * 
-  * - Switch modes between standard QL protocol & TK2
+  *
   * - TK2 broadcast mode
   */
   
  
 //SD Card
 #include <SPI.h>
-#include <SD.h>
+#include <SdFat.h>
 
 //Error Codes
 #define E_OK 0 //OK
@@ -76,11 +80,11 @@
 #define T_HDGAP 150 //Gap between header ACK and data block 150
 #define T_IBLK 3000 //Inter-Block gap 3000
 
-
+SdFat SD;
 
 File currentFile;
 String fileName="network"; //Currently active filename
-String command=""; //Current command
+String command="",parameter=""; //Current command & parameter
 byte clientNETID=1; //Currently active client NETID (63-self inactive)
 
 static byte NETID=63; //Station ID
@@ -136,7 +140,7 @@ void setup() {
   } 
   Serial.println("initialization done.");
   Serial.println("Server Started.");
-
+  //printDirectory("/");
   
 }
 
@@ -156,8 +160,8 @@ void debugPin(){
 }
 
 void viewFile(String fName){
-  if(SD.exists(fName)){
-    currentFile=SD.open(fName,FILE_READ);
+//  if(SD.exists(fName)){
+    if(currentFile=SD.open(fName,FILE_READ)){
     for(short count=0;count<currentFile.size();count++){
       Serial.write(currentFile.read());
     }
@@ -187,11 +191,11 @@ byte checkCommand(){
    * LOAD neti_15
    * 
    */
-  if(Buf[4]==':'){ //TODO validate filename
+  if(Buf[5]==':'){ 
     String cmd=Buf;
-    command=cmd.substring(0,4);
-    fileName=cmd.substring(5);
-    fileName.trim();
+    command=cmd.substring(1,5);
+    parameter=cmd.substring(6);
+    parameter.trim();
     return E_CMD; //command
   }
 
@@ -200,11 +204,16 @@ byte checkCommand(){
 }
 
 byte execCommand(){
-  if(command=="file"){
+  if(command=="file" && parameter!=""){
+    fileName=parameter;
     Serial.println("Current File:\"" + fileName +"\"");
     command="";  
   }
-  //if(command=="view") viewFile(fileName);
+  if(command=="dir "){
+    printDirectory("/");
+    sendFile("dirlist",clientNETID,NETID,false);
+  }
+  
 }
 
 
@@ -221,13 +230,13 @@ void loop() {
     if(error==E_CMD) execCommand();
   }
  */
-  error=sendFile(fileName,clientNETID,NETID);
+  error=sendFile(fileName,clientNETID,NETID,useTK2Fix);
   if(error>=E_CON) {
     error=receiveFile(fileName);
     if(error==E_OK) Serial.println("Receive Success");
     if(error==E_CMD) execCommand();
   }
-  //viewFile(fileName);
+  
 
 
 }
