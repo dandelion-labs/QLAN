@@ -4,7 +4,7 @@
  * Read Data from QL
  * 
  */
-byte receiveFile(String fName){
+byte receiveFile(String ffname){
   byte error=0;
   short blockcount=0;
   //Clear input buffer
@@ -23,24 +23,23 @@ byte receiveFile(String fName){
         }
         //Open file if no error
         SET_LED_PIN;
-        //SD.remove(fName); //Overwrite file
-        currentFile=SD.open(fName,O_READ | O_WRITE | O_CREAT);
-        if(!currentFile){
+        FD.handle=SD.open(ffname,O_READ | O_WRITE | O_CREAT);
+        if(!FD.handle){
           Serial.println("File error");
           return E_FNF;
         }
-        currentFile.seek(0); //Start of file
+        FD.handle.seek(0); //Start of file
       }
       //Serial.print("Block: ");
       //Serial.println(blockcount);
       //blockcount++;
-      currentFile.write(Buf,Header[5]); 
+      FD.handle.write(Buf,Header[5]); 
     }
   } while ((error==E_OK) || (error==E_CHK));
   if(error==E_EOF) error=E_OK; //Report EOF as Success
   
   //Close File
-  currentFile.close();
+  FD.handle.close();
   
   //Read_Retries=5;
   CLR_LED_PIN;

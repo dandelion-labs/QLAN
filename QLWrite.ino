@@ -4,7 +4,7 @@
  * Write Data to QL
  */
 
-byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
+byte sendFile(String fname,byte destID,byte srcID){
 
   byte error=0;
   unsigned long fSize=0,fPosition=0;
@@ -18,15 +18,17 @@ byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
   Header[3]=0; //Block MSB
   
   //Open file
-  error=checkSDFile(fName);//Check if file is valid.
-  if(error!=E_OK) return error;
   SET_LED_PIN;
-  fSize=currentFile.size();
-  fPosition=0;
+  error=checkSDFile(fname);//Check if file is valid.
+  CLR_LED_PIN;
+  if(error!=E_OK) return error;
  
+
+  fSize=FD.handle.size();
+  fPosition=0;
   do{  //Main write loop
     //Populate output buffer
-    fPosition=currentFile.position();
+    fPosition=FD.handle.position();
     if(fSize-fPosition>255){
       Header[5]=255;//bytes in block
       Header[4]=0;//data block
@@ -34,33 +36,36 @@ byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
       Header[5]=fSize-fPosition;
       Header[4]=1;
     }
-    currentFile.read(Buf,Header[5]);
+    SET_LED_PIN;
+    FD.handle.read(Buf,Header[5]);
     
     // Fix for TK2 LOAD erroneously expecting a file header 
-    if(TK2Fix && (Header[2]+Header[3]==0)){ //First block
+    if(FD.useTK2Fix && (Header[2]+Header[3]==0)){ //First block
       if(Buf[0]!=0xFF){ //File with no header info
-        //Create file header
-        //Serial.println("Adding TK2 file header");
-        for(byte count=0;count<15;count++) Buf[count]=0x00;
-        Buf[0]=0xFF;
-        unsigned long fSize=currentFile.size();
-        Buf[1]=(fSize & 0xFF000000)>>24;
-        Buf[2]=(fSize & 0x00FF0000)>>16;
-        Buf[3]=(fSize & 0x0000FF00)>>8;
-        Buf[4]=(fSize & 0x000000FF);
-        //reload data
-        currentFile.seek(0);
+      //Create file header
+      //Serial.println("Adding TK2 file header");
+      for(byte count=0;count<15;count++) Buf[count]=0x00;
+      Buf[0]=0xFF;
+      unsigned long fSize=FD.handle.size();
+      Buf[1]=(fSize & 0xFF000000)>>24;
+      Buf[2]=(fSize & 0x00FF0000)>>16;
+      Buf[3]=(fSize & 0x0000FF00)>>8;
+      Buf[4]=(fSize & 0x000000FF);
+      //reload data
+      FD.handle.seek(0);
         if(fSize>240){
           Header[5]=255;
-          currentFile.read(Buf+15,240);
+          FD.handle.read(Buf+15,240);
         } else {
           Header[5]=fSize+15;
           Header[4]=1;
-          currentFile.read(Buf+15,fSize);
+          FD.handle.read(Buf+15,fSize);
         }
       }
     }
-    //End of fix
+   CLR_LED_PIN;
+    
+
     
     //Data checksum
     Header[6]=0;
@@ -79,8 +84,8 @@ byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
       error=writeBlock();
       if(error==E_CON){
         //debugPin();
-        CLR_LED_PIN;
-        currentFile.close();
+        //CLR_LED_PIN;
+        FD.handle.close();
        // delay(2); //Skip block that caused contention, so ready to read next block
         return E_CON; //Contention
       }
@@ -99,7 +104,7 @@ byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
     //BASIC programs are VERY slow loading, requiring many retries (typically 100-200)
     if((Header[2]+Header[3])>0) maxRetries=300; 
 
-/*
+    /*
     if(error==0){ //Debug
       Serial.print("Block: ");
       Serial.println(((Header[3]<<8) + Header[2]),DEC);
@@ -109,31 +114,32 @@ byte sendFile(String fName,byte destID,byte srcID,boolean TK2Fix){
     
   } while(error==E_OK); 
 
-  //Serial.println(fPosition+Header[5]);
   if(error==E_EOF) error=E_OK; //Report EOF as success
-  CLR_LED_PIN;
-  currentFile.close();
+  //Serial.print("Bytes: ");
+  //Serial.println(fPosition,DEC);
+  //CLR_LED_PIN;
+  FD.handle.close();
   return error;
 }
 
-byte checkSDFile(String fName){
-  currentFile=SD.open(fName,FILE_READ);
-  if(!currentFile){ //File not found
-    //fileName="";
+byte checkSDFile(String ffname){
+  FD.handle=SD.open(ffname,FILE_READ);
+  if(!FD.handle){ //File not found
+    //fname="";
     return E_FNF;
   }
   //Serial.print("Size: ");
-  //Serial.println(currentFile.size());
-  if(currentFile.size()==0){
+  //Serial.println(FD.handle.size());
+  if(FD.handle.size()==0){
     //Serial.println("Zero byte file");
-    currentFile.close();
+    FD.handle.close();
     return E_FZB;
   }
-  //Get the actual case sensitive name of the file, ignoring dirlist file.
-  if(fName!="dirlist"){
+  //Get the actual case sensitive fname of the file, ignoring dirlist file.
+  if(ffname!="dirlist"){
     char tbuf[33];
-    currentFile.getName(tbuf,33);
-    fileName=tbuf;
+    FD.handle.getName(tbuf,33);
+    FD.fname=tbuf;
   }
   return E_OK;
 }

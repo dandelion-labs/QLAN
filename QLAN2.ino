@@ -80,11 +80,30 @@
 #define T_HDGAP 150 //Gap between header ACK and data block 150
 #define T_IBLK 3000 //Inter-Block gap 3000
 
+//Commands
+#define C_FILE "aA" //Set currently active file - parameter: filename
+#define C_DIR "aB" //Show current directory listing - parameter: none
+#define C_DEL "aC" //Delete file - parameter: filename
+#define C_CHDIR "aD" //Change directory - parameter: dirname
+#define C_MKDIR "aE" //Make new directory - parameter: dirname
+#define C_RMDIR "aF" //Remove directory - parameter: dirname
+#define C_MOVE "aG" //Move file
+
 SdFat SD;
 
-File currentFile;
-String fileName="network"; //Currently active filename
+class fileData{
+  public:
+    String fname="boot";
+    File handle;
+    boolean useTK2Fix=true;
+};
+
+
+fileData FD;
+
+
 String command="",parameter=""; //Current command & parameter
+String currentPath="/";
 byte clientNETID=1; //Currently active client NETID (63-self inactive)
 
 static byte NETID=63; //Station ID
@@ -92,21 +111,19 @@ static byte ScoutRetries=5; //Number of scout send retries before failure
 static short Write_Retries=5;
 short Read_Retries=50;
 
-boolean useTK2Fix=true; //Use fix for TK2 LOAD erroneously expecting a file header 
-
 volatile boolean ignorePinTrig=true,pinTrigUp=false,pinTrigDown=false;
 
 char Buf[256],Header[8];
 
 void setup() {
   // put your setup code here, to run once:
-
+  
   //Serial
   Serial.begin(115200);
   delay(2000);
 
   /* Generic STM32F103C board definition
-   *Board definition names can be found by setting the compile verbose setting
+   *Board definition fnames can be found by setting the compile verbose setting
    *& looking for the string after one of the -D compile options.
    *
    *E.G, Arduino nano  -DARDUINO_AVR_NANO
@@ -153,90 +170,16 @@ void pinTrig_isr(){
   }
 }
 
-void debugPin(){
-  SET_DEBUG_PIN;
-  delayMicroseconds(3);
-  CLR_DEBUG_PIN;
-}
-
-void viewFile(String fName){
-//  if(SD.exists(fName)){
-    if(currentFile=SD.open(fName,FILE_READ)){
-    for(short count=0;count<currentFile.size();count++){
-      Serial.write(currentFile.read());
-    }
-    currentFile.close();
-  } else {
-    Serial.println("File not found");
-  }
-  Serial.println();
-}
-
-
-
-byte checkCommand(){
-  /*
-   * Note - This is not part of the QL network protocol.
-   * This protocol extension allows the user to select files for loading and saving
-   * by PRINTing a string to this network station.
-   * 
-   * "file:filename.ext" - request a file called filename.ext
-   * 
-   * 
-   * e.g: - to load the file 'example.bas':
-   * 
-   * OPEN #3,neto_15
-   * PRINT #3,"file:example.bas"
-   * CLOSE #3
-   * LOAD neti_15
-   * 
-   */
-  if(Buf[5]==':'){ 
-    String cmd=Buf;
-    command=cmd.substring(1,5);
-    parameter=cmd.substring(6);
-    parameter.trim();
-    return E_CMD; //command
-  }
-
-  
-  return E_OK; //Not a command
-}
-
-byte execCommand(){
-  if(command=="file" && parameter!=""){
-    fileName=parameter;
-    Serial.println("Current File:\"" + fileName +"\"");
-    command="";  
-  }
-  if(command=="dir "){
-    printDirectory("/");
-    sendFile("dirlist",clientNETID,NETID,false);
-  }
-  
-}
-
-
 void loop() {
   // put your main code here, to run repeatedly:
   //Serial.println("Sending broadcast");
+  
   byte error=0;
- 
- /* 
-  error=sendFile("boot",0,NETID);
-  if(error==E_CON) {
-    error=receiveFile(fileName);
-    if(error==E_OK) Serial.println("Receive Success");
-    if(error==E_CMD) execCommand();
-  }
- */
-  error=sendFile(fileName,clientNETID,NETID,useTK2Fix);
+  error=sendFile(FD.fname,clientNETID,NETID);
   if(error>=E_CON) {
-    error=receiveFile(fileName);
+    error=receiveFile(FD.fname);
     if(error==E_OK) Serial.println("Receive Success");
     if(error==E_CMD) execCommand();
   }
   
-
-
 }
