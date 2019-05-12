@@ -122,8 +122,8 @@ byte sendFile(String fname,byte destID,byte srcID){
   return error;
 }
 
-byte checkSDFile(String ffname){
-  FD.handle=SD.open(ffname,FILE_READ);
+byte checkSDFile(String fname){
+  FD.handle=SD.open(fname,FILE_READ);
   if(!FD.handle){ //File not found
     //fname="";
     return E_FNF;
@@ -136,7 +136,7 @@ byte checkSDFile(String ffname){
     return E_FZB;
   }
   //Get the actual case sensitive fname of the file, ignoring dirlist file.
-  if(ffname!="dirlist"){
+  if(fname!="dirlist"){
     char tbuf[33];
     FD.handle.getName(tbuf,33);
     FD.fname=tbuf;

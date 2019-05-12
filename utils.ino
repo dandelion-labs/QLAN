@@ -30,12 +30,12 @@ byte checkCommand(){
 }
 
 byte execCommand(){//File action commands
-  if(command==C_FILE && parameter!=""){//Set current file
+  if(command==C_NFILE && parameter!=""){//Set current file
     FD.fname=validateFilename(parameter);
     Serial.println("Current File:\"" + FD.fname +"\"");
     command="";  
   }
-  if(command==C_DIR){//Display current directory listing
+  if(command==C_NDIR){//Display current directory listing
     byte error=0;
     printDirectory(currentPath);
     boolean TK2Fix=FD.useTK2Fix;
@@ -47,27 +47,27 @@ byte execCommand(){//File action commands
     SD.remove("dirlist");
     //Serial.println("Complete");
   }
-  if(command==C_DEL){//Delete file
+  if(command==C_NDEL){//Delete file
     char filename[37];
     validateFilename(parameter).toCharArray(filename,37);
     SD.remove(filename);
   }
-  if(command==C_CHDIR){//Change directory
+  if(command==C_NCHDIR){//Change directory
     char dirname[37];
     validateFilename(parameter).toCharArray(dirname,37);
     if(SD.chdir(dirname)) currentPath=dirname;
   }
-  if(command==C_MKDIR){//Make directory
+  if(command==C_NMKDIR){//Make directory
     char dirname[37];
     validateFilename(parameter).toCharArray(dirname,37);
     SD.mkdir(dirname);
   }
-  if(command==C_RMDIR){//Remove directory
+  if(command==C_NRMDIR){//Remove directory
     char dirname[37];
     validateFilename(parameter).toCharArray(dirname,37);
     SD.rmdir(dirname);
   }
-  if(command==C_MOVE){//Move file
+  if(command==C_NMOVE){//Move file
     char filesource[37];
     char filedest[37];
     short delimiter=parameter.indexOf(',');
@@ -93,6 +93,7 @@ String validateFilename(String fname){
 }
 
 void printDirectory(String dirname) {
+  
   //Prints the selected directory listing to the file 'dirlist'
   //This file can then be sent to the QL as a directory listing
   //SD.remove("dirlist");
@@ -129,6 +130,7 @@ void printDirectory(String dirname) {
   }
   output.close();
   dir.close();
+  
 }
 
 void debugPin(){
