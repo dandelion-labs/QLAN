@@ -1,0 +1,54 @@
+100 REMark $$external
+110 DEFine PROCedure NFILE(f$)
+120  NOUT("CaA:"&f$)
+150 END DEFine 
+160 REMark $$external
+170 DEFine PROCedure NVIEW(f$)
+180  NFILE f$
+190  NINP
+200 END DEFine 
+210 REMark $$external
+220 DEFine PROCedure NDIR
+230  NOUT("CaB:")
+260  NINP
+270 END DEFine 
+280 REMark $$external
+290 DEFine PROCedure NDEL(f$)
+300  NOUT("CaC:"&f$)
+330 END DEFine 
+340 DEFine PROCedure NINP
+350  OPEN #4,neti_63
+360  REPeat loop
+370   IF EOF(#4):EXIT loop
+380   INPUT #4,t$
+390   PRINT t$
+400  END REPeat loop
+410  CLOSE #4
+420 END DEFine 
+430 REMark $$external
+440 DEFine PROCedure NCHDIR(f$)
+450  NOUT("CaD:"&f$)
+480 END DEFine 
+490 REMark $$external
+500 DEFine PROCedure NMKDIR(f$)
+510  NOUT("CaE:"&f$)
+540 END DEFine 
+550 REMark $$external
+560 DEFine PROCedure NRMDIR(f$)
+570  NOUT("CaF:"&f$)
+600 END DEFine 
+610 DEFine PROCedure NOUT(c$)
+620  OPEN #4,neto_63
+630  PRINT #4,c$
+640  CLOSE #4
+650 END DEFine 
+edure NRMDIR(f$)
+570  OPEN #4,neto_63
+580  PRINT #4,"CaF:";f$
+590  CLOSE #4
+600 END DEFine 
+610 DEFine PROCedure NOUT(c$)
+620  OPEN #4,neto_63
+630  PRINT #4,c$
+640  CLOSE #4
+650 END DEFine 

@@ -1,0 +1,12 @@
+Bill of materials
+
+1x STM32F103C "Blue Pill" module OR Ardunio Nano (not tested)
+1x SPI SD Card module (search ebay!)
+1x LED + approprate resistor (optional)
+1x PNP transistor (ZTX510 or equiv)
+1x 1k Resistor
+1x 3.9K Resistor
+1x 47R Resistor
+1x 10K Resistor
+1x 220R Resistor
+2x 330R Resistor

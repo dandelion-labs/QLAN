@@ -1,5 +1,69 @@
-Sinclair QL Network File Server
+Simple Sinclair QL Network File Server
+(C) Jason Lucas 2019
 
 This is a work in progress. It may contain bugs. Use with caution.
+
+Provides an inexpensive way of transferring data to and from a QL using
+the QL network interface.
+
+Notes:
+
+Only one file can be opened at once.
+
+Executable files will need a 15 byte file header added to the start of the file
+
+Some versions of Toolkit 2 have a bug in the LOAD command, incorrectly requiring BASIC programs
+to have a file header - A fix for this has been provided an can be activated/deactivate by setting
+the useTK2Fix variable in the source code (default: true)
+
+In some combinations of Toolkit 2 and Minerva ROM, networking does not work correctly - either update your ROMS
+to the latest version, or either disable TK2 or Minerva.
+
+Commands:
+
+There are two versions of the commands code - one just as SuperBASIC procedures (net)
+and one compiled as a QLiberator extension (net_obj). To use the latter, you will need a copy of
+the QLiberator runtime (QLib_run)
+An example boot file is included to load the QLib extension version of the commands
+
+NFILE "filename"    - sets the currently active SD file
+NDIR                - view the current SD directory
+NDEL "filename"     - delete a file
+NCHDIR "path"       - change the current directory
+NMKDIR "path"       - create a new directory
+NRMDIR "path"       - delete a directory (it must be empty)
+NMOVE "file1" "file2" - move a file
+
+Saving and loading files:
+
+Once the filename has been set using the NFILE command,
+files can be loaded/saved/executed using the network address 63
+
+e.g
+Load a BASIC file:
+
+NFILE "somefile"
+LOAD neti_63
+
+Save a BASIC file:
+
+NFILE "somefile"
+SAVE neto_63
+
+Execute a file:
+
+NFILE "somefile"
+EXEC_W neti_63
+
+
+Save a screenshot
+
+NFILE "somefile"
+SBYTES neto_63,131072,32768
+
+Load a screenshot
+
+NFILE "somefile"
+LBYTES neti_63,131072
 
 
