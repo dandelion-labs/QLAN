@@ -6,6 +6,8 @@ This is a work in progress. It may contain bugs. Use with caution.
 Provides an inexpensive way of transferring data to and from a QL using
 the QL network interface.
 
+The source code can be simply compiled using the Arduino IDE.
+
 Notes:
 
 Only one file can be opened at once.
