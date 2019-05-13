@@ -1,0 +1,27 @@
+Board connections
+
+
+STM32F103C "Blue Pill"
+
+Pin     Connection
+
+PB12    Debug (optional)
+PB13    Activity LED (optional)
+PB14    Network Data Out
+PB15    Network Data In
+
+NRST    Reset button (to GND)
+
+SPI Bus (PA4,PA5,PA6,PA7) - SPI SD Card Module
+
+
+Arduino Nano
+
+14 (A0) Debug (optional)
+15 (A1) Activity LED (optional)
+16 (A2) Network Data Out
+17 (A3) Network Data In
+
+RESET   Reset Button (to GND)
+
+SPI Bus (10,11,12,13) - SPI SD Card Module

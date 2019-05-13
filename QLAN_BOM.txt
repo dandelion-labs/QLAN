@@ -10,3 +10,5 @@ Bill of materials
 1x 10K Resistor
 1x 220R Resistor
 2x 330R Resistor
+2x 3.5mm Mono jack sockets
+1x Small momentary push switch (for reset)
